@@ -37,4 +37,5 @@ loader = Mayu::Loader.new(store: store).load
 run Mayu.app(
   store: store,
   refresh_interval: interval,
+  slack_slash_command_token: ENV['MAYU_SLACK_SLASH_COMMAND_TOKEN'],
 )
