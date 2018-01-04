@@ -1,0 +1,82 @@
+#!/usr/bin/env ruby
+require 'mayu'
+require 'optionparser'
+
+interval = ENV.fetch('MAYU_ASSOC_INTERVAL', 60).to_i
+options = {
+  ttl: ENV['MAYU_ASSOC_TTL']&.to_i,
+  wlc: ENV['MAYU_ASSOC_WLC'],
+  community: ENV['MAYU_ASSOC_WLC_COMMUNITY'],
+  ap_mac_for_key: ENV['MAYU_ASSOC_AP_MAC_KEY'],
+  use_wlc_user: ENV['MAYU_ASSOC_USE_WLC_USER'],
+}.to_a.select { |k,v| v }.to_h
+
+s3_options = {
+  region: ENV['MAYU_ASSOC_S3_REGION'],
+  bucket: ENV['MAYU_ASSOC_S3_BUCKET'],
+  key: ENV['MAYU_ASSOC_S3_KEY'],
+}.to_a.select { |k,v| v }.to_h
+file_options = {
+  path: ENV['MAYU_ASSOC_FILE']
+}.to_a.select { |k,v| v }.to_h
+
+OptionParser.new do |opt|
+  opt.on('-i SEC', '--interval SEC', 'interval between updates, in seconds') do |sec|
+    interval = sec.to_i
+  end
+  opt.on('-l TTL', '--ttl TTL', 'seconds to remove disappeared associations from list') do |sec|
+    options[:ttl] = sec.to_i
+  end
+  opt.on('-h HOST', '--wlc HOST', 'address of WLC for SNMP') do |host|
+    options[:host] = host
+  end
+  opt.on('-c COMMUNITY', '--community COMMUNITY', 'SNMP community') do |community|
+    options[:community] = community
+  end
+  opt.on('--use-ap-mac-for-key', 'Use AP MAC address for identifying APs') do
+    options[:ap_mac_for_key] = true
+  end
+  opt.on('--use-wlc-use', 'Use username assigned by WLC for identifying user') do
+    options[:use_wlc_user] = true
+  end
+
+  opt.on('-r REGION', '--s3-region REGION', 'S3 region') do |region|
+    s3_options[:s3_region] = true
+  end
+  opt.on('-b BUCKET', '--s3-bucket BUCKET', 'S3 bucket') do |bucket|
+    s3_options[:s3_bucket] = true
+  end
+  opt.on('-k KEY', '--s3-key KEY', 'S3 key') do |key|
+    s3_options[:s3_key] = key
+  end
+
+  opt.on('-o FILE', '--output FILE') do |path|
+    file_options[:path] = path
+  end
+end.parse!(ARGV)
+
+options[:store] = if file_options.empty?
+  Mayu::Stores::S3.new(**s3_options)
+else
+  Mayu::Stores::File.new(**file_options)
+end
+
+collector_factory = lambda do
+  Mayu::CiscoWlcCollector.new(**options)
+end
+collector_factory.call # check for errors
+
+loop do
+  puts '=> Updating...'
+  collector = collector_factory.call
+  collector.perform!
+
+  puts " * #{Time.now.xmlschema}: #{collector.associations.size} associations"
+
+  sleep interval
+rescue SignalException, SystemExit => e
+  raise
+rescue Exception => e
+  $stderr.puts e.full_message
+  sleep interval
+end
