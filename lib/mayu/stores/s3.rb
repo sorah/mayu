@@ -1,9 +1,10 @@
+require 'mayu/stores/s3'
 require 'aws-sdk-s3'
 require 'json'
 
 module Mayu
   module Stores
-    class S3
+    class S3 < Base
       def initialize(region:, bucket:, key:)
         @region = region
         @bucket = bucket
@@ -15,7 +16,7 @@ module Mayu
           bucket: @bucket,
           key: @key,
           content_type: 'application/json',
-          content: "#{for_json(obj).to_json}\n",
+          body: "#{for_json(obj).to_json}\n",
         )
       end
 
