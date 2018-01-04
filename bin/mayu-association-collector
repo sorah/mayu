@@ -2,6 +2,8 @@
 require 'mayu'
 require 'optionparser'
 
+$stdout.sync = true
+
 interval = ENV.fetch('MAYU_ASSOC_INTERVAL', 60).to_i
 options = {
   ttl: ENV['MAYU_ASSOC_TTL']&.to_i,
