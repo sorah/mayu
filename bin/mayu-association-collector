@@ -5,7 +5,7 @@ require 'optionparser'
 interval = ENV.fetch('MAYU_ASSOC_INTERVAL', 60).to_i
 options = {
   ttl: ENV['MAYU_ASSOC_TTL']&.to_i,
-  wlc: ENV['MAYU_ASSOC_WLC'],
+  host: ENV['MAYU_ASSOC_WLC'],
   community: ENV['MAYU_ASSOC_WLC_COMMUNITY'],
   ap_mac_for_key: ENV['MAYU_ASSOC_AP_MAC_KEY'],
   use_wlc_user: ENV['MAYU_ASSOC_USE_WLC_USER'],
