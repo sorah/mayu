@@ -93,7 +93,7 @@ module Mayu
     end
 
     def suggest_users(query)
-      user_completer.query(query)
+      user_completer.query(query).map { |_| find_user(_) }
     end
 
     ###
