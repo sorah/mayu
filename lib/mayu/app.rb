@@ -207,12 +207,15 @@ module Mayu
       if params[:text].empty?
         halt(200, {"text": ":question: Who should I locate?"}.to_json)
       end
+
       text = params[:text]
       me = false
       if text.match?(/\Ame\s+/)
         text = text.sub(/\Ame\s+/, '')
         me = true
       end
+      text = text.sub(/\A@/,'')
+
       users = loader.suggest_users(text)
       if users.empty?
         halt(200, {"text": ":ghost: Couldn't find any users named #{params[:text].inspect}."}.to_json)
