@@ -233,7 +233,7 @@ module Mayu
           associated_emoji = user.associated_device_kinds.map(&emojimap).join(' ')
           text << "*#{user.name} (#{user.aliases.first})* #{associated_emoji}"
           user.associations.each do |x|
-            time = x.updated_at.strftime('%m/%d %H:%M')
+            time = x.updated_at.localtime.strftime('%m/%d %H:%M')
             descr = (x.ap.description && !x.ap.description.empty?) ? "_#{x.ap.description}_" : ""
             text << "- #{emojimap[x.device.kind]} #{x.ap.name} #{descr} (#{time}-)"
           end
