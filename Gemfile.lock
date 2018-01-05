@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mayu (0.1.0)
+    mayu (0.1.0.beta1)
       aws-sdk-s3
       graphed_fuzzy_search
       sinatra
